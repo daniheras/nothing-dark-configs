@@ -31,6 +31,21 @@ herdr/
 └── config.toml                # vesper base theme restyled with Nothing tokens
 ```
 
+## Screenshots
+
+OpenCode (home) with the `nothing-dark` theme — dot-matrix splash, red `#D71921`
+prompt accent on graphite:
+
+![OpenCode TUI](docs/images/opencode-home.png)
+
+OpenCode running inside Herdr (both tools themed together):
+
+![OpenCode inside Herdr](docs/images/herdr-opencode.png)
+
+Herdr sidebar — spaces and agents with the red workspace accent:
+
+![Herdr sidebar](docs/images/herdr-sidebar.png)
+
 ## Install — OpenCode
 
 ```sh
