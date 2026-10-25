@@ -1,0 +1,9 @@
+{
+  "plugins": [
+    "./herdr-opencode"
+  ],
+  "theme": {
+    "name": "nothing-dark",
+    "mode": "dark"
+  }
+}
