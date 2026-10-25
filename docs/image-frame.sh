@@ -17,40 +17,43 @@ frame() {
   local sh=$SHADOW gz=${SHADOW%%x*}
 
   local W H
-  W=$(magick identify -format '%w' "$img")
-  H=$(magick identify -format '%h' "$img")
-  local cr=$((RADIUS - 1))
-  local cw=$((W - 1)) ch=$((H - 1))
-
   local tmp
   tmp=$(mktemp --suffix=.png)
   trap 'rm -f "$tmp"' RETURN
 
+  # Normalize virtual-canvas geometry first: stale page offsets (from early
+  # crops) corrupt the flip/flop corner masks below — e.g. glitchy right corners.
+  magick "$img" +repage "$tmp"
+  W=$(magick identify -format '%w' "$tmp")
+  H=$(magick identify -format '%h' "$tmp")
+  local cr=$((RADIUS - 1))
+  local cw=$((W - 1)) ch=$((H - 1))
+
   # 1. Round the corners (classic IM corner-mask recipe).
-  magick "$img" \
+  magick "$tmp" \
     \( +clone -alpha extract \
        -draw "fill black polygon 0,0 0,$cr $cr,0 fill white circle $cr,$cr $cr,0" \
        \( +clone -flip \) \( +clone -flop \) \
        \( +clone -flip \( +clone -flip \) -delete 0 \) \
        \( +clone -flop \( +clone -flop \) -delete 0 \) \
        -compose Multiply -composite \) \
-    -alpha off -compose CopyOpacity -composite "$tmp"
+    -alpha off -compose CopyOpacity -composite +repage "$tmp"
 
   # 2. 2px border drawn along the rounded contour.
   magick "$tmp" \
     \( -size "${W}x${H}" xc:none -fill none \
        -stroke "$BORDER" -strokewidth 2 \
        -draw "roundrectangle 1,1 $cw,$ch $cr,$cr" \) \
-    -compose over -composite "$tmp"
+    -compose over -composite +repage "$tmp"
 
   # 3. Drop shadow on a transparent canvas.
   magick "$tmp" \
     \( +clone -background none -shadow "$SHADOW" \) +swap \
-    -background none -compose over -composite "$tmp"
+    -background none -compose over -composite +repage "$tmp"
 
   # 4. Symmetric padding to leave room for the blur.
   magick "$tmp" -gravity center -background none \
-    -extent $((W + 2 * MARGIN))x$((H + 2 * MARGIN)) "$img"
+    -extent $((W + 2 * MARGIN))x$((H + 2 * MARGIN)) +repage "$img"
 }
 
 for img in "$@"; do
